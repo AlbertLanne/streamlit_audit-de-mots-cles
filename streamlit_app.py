@@ -6,7 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 # Configurer les identifiants d'authentification pour l'API Google Sheets
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name('streamlit-386323-6eccb7ac6d66.json', scope)
 client = gspread.authorize(creds)
 
 # Ouvrir la feuille de calcul Google Sheets
