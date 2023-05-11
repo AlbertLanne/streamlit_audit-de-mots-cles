@@ -10,7 +10,7 @@ st.title("Audit de mots clés")
 # Renseignez ici les informations de votre fichier de service Google Sheets
 credentials = ServiceAccountCredentials.from_json_keyfile_name("streamlit-386323-6eccb7ac6d66.json", ["https://spreadsheets.google.com/feeds"])
 client = gspread.authorize(credentials)
-sheet = client.open("Sumrush Sheet").sheet1
+sheet = client.open("Nom_de_votre_Feuille_de_calcul").sheet1
 
 # Champ de saisie pour le mot clé
 keyword = st.text_input("Renseignez le mot clé :")
