@@ -1,47 +1,34 @@
 import streamlit as st
-import requests
-from bs4 import BeautifulSoup
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # Titre de l'application
-st.title("Audit de mots clés")
+st.title("Génération de Google Sheets")
 
 # Renseignez ici les informations de votre fichier de service Google Sheets
 credentials = ServiceAccountCredentials.from_json_keyfile_name("streamlit-386323-6eccb7ac6d66.json", ["https://spreadsheets.google.com/feeds"])
 client = gspread.authorize(credentials)
-sheet = client.open("Nom_de_votre_Feuille_de_calcul").sheet1
 
-# Champ de saisie pour le mot clé
-keyword = st.text_input("Renseignez le mot clé :")
+# Champ de saisie pour le nom du fichier Google Sheets
+sheet_name = st.text_input("Nom du fichier Google Sheets :")
 
-# Bouton pour lancer l'audit
-if st.button("Lancer l'audit"):
-    # URL du site SEMrush pour effectuer la recherche du mot clé
-    url = f"https://www.semrush.com/fr/info/{keyword}"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
+# Champ de saisie pour les données à enregistrer
+data_input = st.text_area("Données à enregistrer (une ligne par donnée) :")
 
-    # Récupération des informations souhaitées depuis le site SEMrush
-    volume_global = soup.find("div", class_="seo-parameters__value js-seo-volume-global")
-    cpc = soup.find("div", class_="seo-parameters__value js-seo-cpc")
-    concurrence = soup.find("div", class_="seo-parameters__value js-seo-competition")
+# Bouton pour générer le Google Sheets
+if st.button("Générer le Google Sheets"):
+    # Création du nouveau fichier Google Sheets
+    new_sheet = client.create(sheet_name)
+    worksheet = new_sheet.get_worksheet(0)
+    
+    # Enregistrement des données dans le Google Sheets
+    data = data_input.split('\n')
+    for i, item in enumerate(data):
+        worksheet.update_cell(i+1, 1, item)
+    
+    st.success("Le Google Sheets a été généré avec succès.")
 
-    # Affichage des informations
-    if volume_global and cpc and concurrence:
-        st.write("Résultats de l'audit :")
-        st.write(f"Volume de recherche global : {volume_global.text.strip()}")
-        st.write(f"CPC (Coût Par Clic) : {cpc.text.strip()}")
-        st.write(f"Concurrence : {concurrence.text.strip()}")
-
-        # Écriture des informations dans la feuille de calcul Google Sheets
-        sheet.append_row([keyword, volume_global.text.strip(), cpc.text.strip(), concurrence.text.strip()])
-        st.write("Les informations ont été enregistrées dans la feuille de calcul Google Sheets.")
-    else:
-        st.write("Aucun résultat trouvé pour ce mot clé.")
-
-
-
-
-
-
+# Affichage du lien vers le Google Sheets généré
+if 'new_sheet' in locals():
+    st.write("Lien vers le Google Sheets généré :")
+    st.write(new_sheet.url)
