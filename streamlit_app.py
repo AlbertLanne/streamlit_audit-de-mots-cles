@@ -1,33 +1,41 @@
+import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Renseignez ici les informations de votre fichier Google Sheets
-scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-credentials = ServiceAccountCredentials.from_json_keyfile_name('streamlit-386323-6eccb7ac6d66.json', scope)
+# Titre de l'application
+st.title("Audit de mots clés")
+
+# Renseignez ici les informations de votre fichier de service Google Sheets
+credentials = ServiceAccountCredentials.from_json_keyfile_name("streamlit-386323-6eccb7ac6d66.json", ["https://spreadsheets.google.com/feeds"])
 client = gspread.authorize(credentials)
-sheet = client.open('Sheet Sumrush').sheet1
+sheet = client.open("Sumrush sheet").sheet1
 
-# Renseignez ici votre mot-clé
-mot_cle = "votre_mot_cle"
+# Champ de saisie pour le mot clé
+keyword = st.text_input("Renseignez le mot clé :")
 
-# URL de recherche SEMrush pour le mot-clé spécifié
-url = f"https://www.semrush.com/analytics/seo/overview/?q={mot_cle}"
+# Bouton pour lancer l'audit
+if st.button("Lancer l'audit"):
+    # URL du site SEMrush pour effectuer la recherche du mot clé
+    url = f"https://www.semrush.com/fr/info/{keyword}"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
 
-# Effectuer une requête GET pour obtenir la page de résultats SEMrush
-response = requests.get(url)
-soup = BeautifulSoup(response.content, 'html.parser')
+    # Récupération des informations souhaitées depuis le site SEMrush
+    volume_global = soup.find("div", class_="seo-parameters__value js-seo-volume-global")
+    cpc = soup.find("div", class_="seo-parameters__value js-seo-cpc")
+    concurrence = soup.find("div", class_="seo-parameters__value js-seo-competition")
 
-# Extraire les informations souhaitées de la page
-infos = []
-elements = soup.find_all('div', class_='key-value-Block__value')
+    # Affichage des informations
+    if volume_global and cpc and concurrence:
+        st.write("Résultats de l'audit :")
+        st.write(f"Volume de recherche global : {volume_global.text.strip()}")
+        st.write(f"CPC (Coût Par Clic) : {cpc.text.strip()}")
+        st.write(f"Concurrence : {concurrence.text.strip()}")
 
-for element in elements:
-    infos.append(element.get_text().strip())
-
-# Écrire les informations dans le fichier Google Sheets
-row = [mot_cle] + infos
-sheet.append_row(row)
-
-print("Données enregistrées avec succès dans Google Sheets.")
+        # Écriture des informations dans la feuille de calcul Google Sheets
+        sheet.append_row([keyword, volume_global.text.strip(), cpc.text.strip(), concurrence.text.strip()])
+        st.write("Les informations ont été enregistrées dans la feuille de calcul Google Sheets.")
+    else:
+        st.write("Aucun résultat trouvé pour ce mot clé.")
