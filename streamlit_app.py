@@ -2,15 +2,18 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.auth import credentials
+from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 
 # Titre de l'application
 st.title("Audit de mots clés")
 
 # Renseignez ici les informations de votre fichier de service Google Sheets
-credentials = ServiceAccountCredentials.from_json_keyfile_name("streamlit-386323-6eccb7ac6d66.json", ["https://spreadsheets.google.com/feeds"])
-client = gspread.authorize(credentials)
-sheet = client.open("Sumrush sheet").sheet1
+credentials = service_account.Credentials.from_service_account_file("streamlit-386323-6eccb7ac6d66.json")
+client = gspread.Client(credentials=credentials)
+client.auth.refresh(Request())
+sheet = client.open("Sumrush Sheet").sheet1
 
 # Champ de saisie pour le mot clé
 keyword = st.text_input("Renseignez le mot clé :")
