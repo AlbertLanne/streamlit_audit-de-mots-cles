@@ -1,27 +1,33 @@
-import semrush
-import pandas as pd
+import requests
+from bs4 import BeautifulSoup
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Configurer les identifiants d'authentification pour l'API Google Sheets
-scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_name('streamlit-386323-6eccb7ac6d66.json', scope)
-client = gspread.authorize(creds)
+# Renseignez ici les informations de votre fichier Google Sheets
+scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+credentials = ServiceAccountCredentials.from_json_keyfile_name('streamlit-386323-6eccb7ac6d66.json', scope)
+client = gspread.authorize(credentials)
+sheet = client.open('Sheet Sumrush').sheet1
 
-# Ouvrir la feuille de calcul Google Sheets
-sheet = client.open('Ma feuille de calcul').sheet1
+# Renseignez ici votre mot-clé
+mot_cle = "votre_mot_cle"
 
-# Récupérer les informations sur le mot clé à partir de l'API SEMrush
-api_key = 'ma_clé_api_semush'
-domain = 'mon_domaine.com'
-keyword = 'mon_mot_clé'
-result = semrush.DomainOverview(domain, api_key=api_key, display_limit=10)
-data = result['Rankings']['Organic']
+# URL de recherche SEMrush pour le mot-clé spécifié
+url = f"https://www.semrush.com/analytics/seo/overview/?q={mot_cle}"
 
-# Créer un DataFrame Pandas à partir des données récupérées
-df = pd.DataFrame(data)
+# Effectuer une requête GET pour obtenir la page de résultats SEMrush
+response = requests.get(url)
+soup = BeautifulSoup(response.content, 'html.parser')
 
-# Écrire les données sur la feuille de calcul Google Sheets
-sheet.clear()
-sheet.update([df.columns.values.tolist()] + df.values.tolist())
+# Extraire les informations souhaitées de la page
+infos = []
+elements = soup.find_all('div', class_='key-value-Block__value')
+
+for element in elements:
+    infos.append(element.get_text().strip())
+
+# Écrire les informations dans le fichier Google Sheets
+row = [mot_cle] + infos
+sheet.append_row(row)
+
+print("Données enregistrées avec succès dans Google Sheets.")
