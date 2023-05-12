@@ -6,7 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 st.title("Génération de Google Sheets")
 
 # Renseignez ici les informations de votre fichier de service Google Sheets
-credentials = ServiceAccountCredentials.from_json_keyfile_name("streamlit-386418-0f7348939df2.json", ['https://www.googleapis.com/auth/drive'])
+credentials = ServiceAccountCredentials.from_json_keyfile_name("streamlit-386323-6eccb7ac6d66.json", ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets'])
 client = gspread.authorize(credentials)
 
 # Champ de saisie pour le nom du fichier Google Sheets
