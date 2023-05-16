@@ -14,6 +14,9 @@ client = gspread.authorize(credentials)
 # Sélection du répertoire contenant les fichiers Excel
 folder_path = "Streamlit/exemple-Export-Semrush/uplix-2023-audit/Current"
 
+# Champ de saisie pour le nom du fichier Google Sheet
+sheet_name = st.text_input("Nom du fichier Google Sheet")
+
 # Bouton pour générer le Google Sheet
 if st.button("Générer le Google Sheet"):
     # Vérifier si le chemin du dossier est valide
@@ -43,16 +46,19 @@ if st.button("Générer le Google Sheet"):
     keywords_table = generate_keywords_table(folder_path)
     
     if keywords_table is not None:
-        # Création du nouveau fichier Google Sheets
-        new_sheet = client.create("Tableau de mots-clés")
-        worksheet = new_sheet.get_worksheet(0)
+        if sheet_name == "":
+            st.error("Veuillez saisir un nom pour le fichier Google Sheet.")
+        else:
+            # Création du nouveau fichier Google Sheets avec le nom saisi
+            new_sheet = client.create(sheet_name)
+            worksheet = new_sheet.get_worksheet(0)
 
-        # Enregistrement des données dans le Google Sheets
-        data = [keywords_table.columns.tolist()] + keywords_table.values.tolist()
-        worksheet.update(data)
+            # Enregistrement des données dans le Google Sheets
+            data = [keywords_table.columns.tolist()] + keywords_table.values.tolist()
+            worksheet.update(data)
 
-        st.success("Le Google Sheet a été généré avec succès.")
+            st.success("Le Google Sheet a été généré avec succès.")
 
-        # Affichage du lien vers le Google Sheet généré
-        st.write("Lien vers le Google Sheet généré :")
-        st.write(new_sheet.url)
+            # Affichage du lien vers le Google Sheet généré
+            st.write("Lien vers le Google Sheet généré :")
+            st.write(new_sheet.url)
